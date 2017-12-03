@@ -92,8 +92,6 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);//隐藏状态栏
         setContentView(R.layout.activity_camera);
 
-
-
         initView();
     }
 
@@ -137,12 +135,15 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 // 初始化Camera
                 //获取摄像头权限
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if(checkSelfPermission(Manifest.permission.CAMERA)!=PackageManager.PERMISSION_GRANTED){
-                        requestPermissions(new String[]{Manifest.permission.CAMERA},1);
+                    if(checkSelfPermission(Manifest.permission.CAMERA)!=PackageManager.PERMISSION_GRANTED
+                            ||checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED){
+                        requestPermissions(new String[]{Manifest.permission.CAMERA,Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
                         findViewById(R.id.btn_control).setClickable(false);
                     }else {
                         initCamera2();
                     }
+                }else{
+                    initCamera2();
                 }
             }
 
