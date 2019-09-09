@@ -193,6 +193,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 mCameraDevice = null;
             }
             mCameraID^=1;
+            initImageReader();
             mCameraManager.openCamera(mCameraID+"", stateCallback, mainHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -212,33 +213,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
         mCameraID = BACK_CAMERA;//后摄像头
         Log.d(TAG, "initCamera2: "+ CameraCharacteristics.LENS_FACING_BACK);
-        mImageReader = ImageReader.newInstance(1080, 1920, ImageFormat.JPEG,1);
-        mImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() { //可以在这里处理拍照得到的临时照片 例如，写入本地
-            @Override
-            public void onImageAvailable(ImageReader reader) {
-//                mCameraDevice.close();
-//                mSurfaceView.setVisibility(View.INVISIBLE);
-                // 拿到拍照照片数据
-                Image image = reader.acquireNextImage();
-                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                byte[] bytes = new byte[buffer.remaining()];
-                buffer.get(bytes);//由缓冲区存入字节数组
-                //保存
-
-                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-
-                if (bitmap != null) {
-                    if(mCameraID == FRONT_CAMERA){
-                        //前置摄像头拍的要先旋转180度
-                        bitmap = adjustPhotoRotation(bitmap,180);
-                    }
-                    iv_thumb.setImageBitmap(bitmap);
-                    writeToFile(bitmap);
-                }
-
-                image.close();
-            }
-        }, mainHandler);
+        initImageReader();
         //获取摄像头管理
         mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
 
@@ -252,6 +227,36 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    private void initImageReader(){
+      mImageReader = ImageReader.newInstance(1080, 1920, ImageFormat.JPEG,1);
+      mImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() { //可以在这里处理拍照得到的临时照片 例如，写入本地
+        @Override
+        public void onImageAvailable(ImageReader reader) {
+          //                mCameraDevice.close();
+          //                mSurfaceView.setVisibility(View.INVISIBLE);
+          // 拿到拍照照片数据
+          Image image = reader.acquireNextImage();
+          ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+          byte[] bytes = new byte[buffer.remaining()];
+          buffer.get(bytes);//由缓冲区存入字节数组
+          //保存
+
+          Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+          if (bitmap != null) {
+            if(mCameraID == FRONT_CAMERA){
+              //前置摄像头拍的要先旋转180度
+              bitmap = adjustPhotoRotation(bitmap,180);
+            }
+            iv_thumb.setImageBitmap(bitmap);
+            writeToFile(bitmap);
+          }
+
+          image.close();
+        }
+      }, mainHandler);
     }
 
     Bitmap adjustPhotoRotation(Bitmap bm, final int orientationDegree)
